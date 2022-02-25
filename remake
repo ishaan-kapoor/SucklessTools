@@ -6,6 +6,7 @@
 #sudo make clean install -C /opt/suckless/st/
 
 cwd=$(pwd)
+sed -i "/^[ ]*\[SchemeUrg\]/ d" ~/.cache/wal/colors-wal-dwm.h
 
 cd /opt/suckless/dwm
 sudo rm config.h drw.o dwm dwm.o util.o
