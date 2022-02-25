@@ -66,6 +66,11 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "st", NULL };
+static const char *volup[]    = { "/ishaan/personal/bin/volume",   "up",  "5",   NULL };
+static const char *voldown[]    = { "/ishaan/personal/bin/volume", "down", "5",  NULL };
+static const char *volmute[]    = { "/ishaan/personal/bin/volume", "mute",       NULL };
+static const char *statbarref[]    = { "/ishaan/personal/bin/statusbar_refresh", NULL };
+
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -103,6 +108,10 @@ static Key keys[] = {
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
+        { MODKEY,                       XK_F1,     spawn,             {.v = volmute    } },
+        { MODKEY,                       XK_F2,     spawn,             {.v = voldown    } },
+        { MODKEY,                       XK_F3,     spawn,             {.v = volup      } },
+        { MODKEY,                       XK_F5,     spawn,             {.v = statbarref } },
 };
 
 /* button definitions */
