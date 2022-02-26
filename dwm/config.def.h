@@ -50,7 +50,7 @@ static const int resizehints = 1;    /* 1 means respect size hints in tiled resi
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
 
 #define FORCE_VSPLIT 1  /* nrowgrid layout: force two clients to always split vertically */
-#include "vanitygaps.c"
+#include "custom.c"
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
@@ -151,6 +151,8 @@ static Key keys[] = {
 	{ MODKEY|ControlMask|ShiftMask, XK_0,      defaultgaps,    {0} },
 	{ MODKEY|ControlMask,		XK_comma,  cyclelayout,    {.i = -1 } },
 	{ MODKEY|ControlMask,           XK_period, cyclelayout,    {.i = +1 } },
+	{ MODKEY|ShiftMask,             XK_j,      movestack,      {.i = +1 } },
+	{ MODKEY|ShiftMask,             XK_k,      movestack,      {.i = -1 } },
 };
 
 /* button definitions */
