@@ -122,6 +122,10 @@ struct Monitor {
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
+	int gappih;           /* horizontal gap between windows */
+	int gappiv;           /* vertical gap between windows */
+	int gappoh;           /* horizontal outer gaps */
+	int gappov;           /* vertical outer gaps */
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
@@ -162,6 +166,7 @@ static void configure(Client *c);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
 static Monitor *createmon(void);
+static void cyclelayout(const Arg *arg);
 static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
@@ -216,8 +221,6 @@ static void sigchld(int unused);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
-static void tcl(Monitor *m);
-static void tile(Monitor *);
 static void togglealttag();
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
@@ -671,6 +674,10 @@ createmon(void)
 	m->nmaster = nmaster;
 	m->showbar = showbar;
 	m->topbar = topbar;
+	m->gappih = gappih;
+	m->gappiv = gappiv;
+	m->gappoh = gappoh;
+	m->gappov = gappov;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
@@ -689,6 +696,23 @@ createmon(void)
 	}
 
 	return m;
+}
+
+void
+cyclelayout(const Arg *arg) {
+	Layout *l;
+	for(l = (Layout *)layouts; l != selmon->lt[selmon->sellt]; l++);
+	if(arg->i > 0) {
+		if(l->symbol && (l + 1)->symbol)
+			setlayout(&((Arg) { .v = (l + 1) }));
+		else
+			setlayout(&((Arg) { .v = layouts }));
+	} else {
+		if(l != layouts && (l - 1)->symbol)
+			setlayout(&((Arg) { .v = (l - 1) }));
+		else
+			setlayout(&((Arg) { .v = &layouts[LENGTH(layouts) - 2] }));
+	}
 }
 
 void
@@ -1747,109 +1771,6 @@ tagmon(const Arg *arg)
 	if (!selmon->sel || !mons->next)
 		return;
 	sendmon(selmon->sel, dirtomon(arg->i));
-}
-
-void
-tile(Monitor *m)
-{
-	unsigned int i, n, h, mw, my, ty;
-	Client *c;
-
-	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
-	if (n == 0)
-		return;
-
-	if (n > m->nmaster)
-		mw = m->nmaster ? m->ww * m->mfact : 0;
-	else
-		mw = m->ww;
-	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
-		if (i < m->nmaster) {
-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
-			if (my + HEIGHT(c) < m->wh)
-				my += HEIGHT(c);
-		} else {
-			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
-			if (ty + HEIGHT(c) < m->wh)
-				ty += HEIGHT(c);
-		}
-}
-
-void
-tcl(Monitor * m)
-{
-	int x, y, h, w, mw, sw, bdw;
-	unsigned int i, n;
-	Client * c;
-
-	for (n = 0, c = nexttiled(m->clients); c;
-	        c = nexttiled(c->next), n++);
-
-	if (n == 0)
-		return;
-
-	c = nexttiled(m->clients);
-
-	mw = m->mfact * m->ww;
-	sw = (m->ww - mw) / 2;
-	bdw = (2 * c->bw);
-	resize(c,
-	       n < 3 ? m->wx : m->wx + sw,
-	       m->wy,
-	       n == 1 ? m->ww - bdw : mw - bdw,
-	       m->wh - bdw,
-	       False);
-
-	if (--n == 0)
-		return;
-
-	w = (m->ww - mw) / ((n > 1) + 1);
-	c = nexttiled(c->next);
-
-	if (n > 1)
-	{
-		x = m->wx + ((n > 1) ? mw + sw : mw);
-		y = m->wy;
-		h = m->wh / (n / 2);
-
-		if (h < bh)
-			h = m->wh;
-
-		for (i = 0; c && i < n / 2; c = nexttiled(c->next), i++)
-		{
-			resize(c,
-			       x,
-			       y,
-			       w - bdw,
-			       (i + 1 == n / 2) ? m->wy + m->wh - y - bdw : h - bdw,
-			       False);
-
-			if (h != m->wh)
-				y = c->y + HEIGHT(c);
-		}
-	}
-
-	x = (n + 1 / 2) == 1 ? mw : m->wx;
-	y = m->wy;
-	h = m->wh / ((n + 1) / 2);
-
-	if (h < bh)
-		h = m->wh;
-
-	for (i = 0; c; c = nexttiled(c->next), i++)
-	{
-		resize(c,
-		       x,
-		       y,
-		       (i + 1 == (n + 1) / 2) ? w - bdw : w - bdw,
-		       (i + 1 == (n + 1) / 2) ? m->wy + m->wh - y - bdw : h - bdw,
-		       False);
-
-		if (h != m->wh)
-			y = c->y + HEIGHT(c);
-	}
 }
 
 void
