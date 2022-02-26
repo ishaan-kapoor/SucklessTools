@@ -108,10 +108,12 @@ static Key keys[] = {
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
-        { MODKEY,                       XK_F1,     spawn,             {.v = volmute    } },
-        { MODKEY,                       XK_F2,     spawn,             {.v = voldown    } },
-        { MODKEY,                       XK_F3,     spawn,             {.v = volup      } },
-        { MODKEY,                       XK_F5,     spawn,             {.v = statbarref } },
+        { MODKEY,                       XK_F1,     spawn,          {.v = volmute    } },
+        { MODKEY,                       XK_F2,     spawn,          {.v = voldown    } },
+        { MODKEY,                       XK_F3,     spawn,          {.v = volup      } },
+        { MODKEY,                       XK_F5,     spawn,          {.v = statbarref } },
+        { MODKEY,                       XK_x,      movecenter,     {0} },
+
 };
 
 /* button definitions */
