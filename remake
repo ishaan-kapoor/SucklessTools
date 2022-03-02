@@ -1,10 +1,5 @@
 #!/bin/sh
 
-# remake dwm, dmenu and st to apply changes
-#sudo make clean install -C /opt/suckless/dwm/
-#sudo make clean install -C /opt/suckless/dmenu/
-#sudo make clean install -C /opt/suckless/st/
-
 cwd=$(pwd)
 sed -i "/^[ ]*\[SchemeUrg\]/ d" ~/.cache/wal/colors-wal-dwm.h
 
