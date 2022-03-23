@@ -10,7 +10,7 @@ static const unsigned int gappov    = 30;       /* vert outer gap between window
 static       int smartgaps          = 0;        /* 1 means no outer gap when there is only one window */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[]          = { "monospace::size=14:antialias=true:autohint=true", "CaskaydiaCove Nerd Font:style=Book:size=14:antialias=true:autohint=true", "JoyPixels:style=Regular:size=14:antialias=true:autohint=true" };
+static const char *fonts[]          = { "CaskaydiaCove Nerd Font:style=Book:size=14:antialias=true:autohint=true", "JoyPixels:style=Regular:size=14:antialias=true:autohint=true", "monospace::size=14:antialias=true:autohint=true"};
 static const char dmenufont[]       = "monospace:size=14";
 static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
@@ -151,8 +151,8 @@ static Key keys[] = {
 //	{ MODKEY|ControlMask|ShiftMask, XK_9,      incrovgaps,     {.i = -1 } },
 	{ MODKEY|ControlMask,           XK_0,      togglegaps,     {0} },
 	{ MODKEY|ControlMask|ShiftMask, XK_0,      defaultgaps,    {0} },
-	{ MODKEY|ControlMask,		XK_comma,  cyclelayout,    {.i = -1 } },
-	{ MODKEY|ControlMask,           XK_period, cyclelayout,    {.i = +1 } },
+	{ MODKEY|ShiftMask,		XK_h,      cyclelayout,    {.i = -1 } },
+	{ MODKEY|ShiftMask,             XK_l,      cyclelayout,    {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_j,      movestack,      {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_k,      movestack,      {.i = -1 } },
 };
