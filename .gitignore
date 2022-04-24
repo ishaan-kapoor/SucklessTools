@@ -1,10 +1,14 @@
 *.bak
 config.h
+*.orig
+*.rej
+README.*
+*.png
 
-/dwm/drw.o
-/dwm/dwm
-/dwm/dwm.o
-/dwm/util.o
+dwm/drw.o
+dwm/dwm
+dwm/dwm.o
+dwm/util.o
 
 dmenu/dmenu
 dmenu/dmenu.o
