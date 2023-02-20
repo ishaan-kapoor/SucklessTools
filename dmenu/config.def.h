@@ -7,12 +7,12 @@ static int min_width = 500;                /* minimum width when centered */
 static int fuzzy = 1;                      /* -F  option; if 0, dmenu doesn't use fuzzy matching     */
 /* -fn option overrides fonts[0]; default X11 font or font set */
 static const char *fonts[] = {
-	" CaskaydiaCove Nerd Font:style=Book:size=14:antialias=true:autohint=true",
+	"CaskaydiaCove Nerd Font:style=Book:size=14:antialias=true:autohint=true",
 	"JoyPixels:style=Regular:size=14:antialias=true:autohint=true",
 	"monospace:size=14:antialias=true:autohint=true"
 };
 static const char *prompt      = NULL;      /* -p  option; prompt to the left of input field */
-#include "/ishaan/.cache/wal/colors-wal-dmenu.h"
+#include "/home/ishaan/.cache/wal/colors-wal-dmenu.h"
 
 /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
 static unsigned int lines      = 0;

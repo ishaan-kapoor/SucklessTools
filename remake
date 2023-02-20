@@ -3,19 +3,19 @@
 cwd=$(pwd)
 sed -i "/^[ ]*\[SchemeUrg\]/ d" ~/.cache/wal/colors-wal-dwm.h
 
-cd /ishaan/personal/programs/SucklessTools/dwm
+cd /home/ishaan/programs/SucklessTools/dwm
 sudo rm config.h drw.o dwm dwm.o util.o
 sudo make
 sudo make clean install
 sudo rm config.h drw.o dwm dwm.o util.o
 
-cd /ishaan/personal/programs/SucklessTools/dmenu
+cd /home/ishaan/programs/SucklessTools/dmenu
 sudo rm config.h dmenu dmenu.o drw.o stest stest.o util.o
 sudo make
 sudo make clean install
 sudo rm config.h dmenu dmenu.o drw.o stest stest.o util.o
 
-cd /ishaan/personal/programs/SucklessTools/st
+cd /home/ishaan/programs/SucklessTools/st
 sudo rm config.h st st.o x.o
 sudo make
 sudo make clean install

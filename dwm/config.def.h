@@ -20,7 +20,7 @@ static const char col_cyan[]        = "#005577";
 static const unsigned int baralpha = 0xd0;
 static const unsigned int borderalpha = OPAQUE;
 
-#include "/ishaan/.cache/wal/colors-wal-dwm.h"
+#include "/home/ishaan/.cache/wal/colors-wal-dwm.h"
 
 static const unsigned int alphas[][3]      = {
        /*               fg      bg        border     */

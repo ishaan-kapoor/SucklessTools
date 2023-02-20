@@ -93,9 +93,9 @@ char *termname = "st-256color";
  */
 unsigned int tabspaces = 8;
 
-float alpha = 0.7; // bg opacity
+float alpha = 0.8; // bg opacity
 
-#include "/ishaan/.cache/wal/colors-wal-st.h"
+#include "/home/ishaan/.cache/wal/colors-wal-st.h"
 
 /*
  * Default shape of cursor
@@ -151,7 +151,7 @@ static MouseShortcut mshortcuts[] = {
 /* Internal keyboard shortcuts. */
 #define MODKEY Mod1Mask
 #define TERMMOD (ControlMask|ShiftMask)
-static char *copyoutput[] = { "/bin/sh", "-c", "/ishaan/personal/bin/st-copyout", "externalpipe", NULL };
+static char *copyoutput[] = { "/bin/sh", "-c", "/home/ishaan/programs/scripts/st-copyout", "externalpipe", NULL };
 
 static Shortcut shortcuts[] = {
 	/* mask                 keysym          function        argument */
