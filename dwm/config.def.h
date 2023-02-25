@@ -10,7 +10,7 @@ static const unsigned int gappov    = 30;       /* vert outer gap between window
 static       int smartgaps          = 0;        /* 1 means no outer gap when there is only one window */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[]          = { "CaskaydiaCove Nerd Font:style=Book:size=14:antialias=true:autohint=true", "JoyPixels:style=Regular:size=14:antialias=true:autohint=true", "monospace::size=14:antialias=true:autohint=true"};
+static const char *fonts[]          = { "CaskaydiaCove Nerd Font:style=Book:size=12:antialias=true:autohint=true", "JoyPixels:style=Regular:size=11:antialias=true:autohint=true", "monospace::size=12:antialias=true:autohint=true"};
 static const char dmenufont[]       = "monospace:size=14";
 static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
@@ -88,12 +88,17 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", NULL };
 static const char *termcmd[]  = { "st", NULL };
-static const char *volup[]    = { "/ishaan/personal/bin/volume",   "up",  "5",   NULL };
-static const char *voldown[]    = { "/ishaan/personal/bin/volume", "down", "5",  NULL };
-static const char *volmute[]    = { "/ishaan/personal/bin/volume", "mute",       NULL };
-static const char *statbarref[]    = { "/ishaan/personal/bin/statusbar_refresh", NULL };
+static const char *browsercmd[]  = { "chromium", NULL };
+static const char *statbarref[]    = { "/home/ishaan/programs/scripts/sb-refresh", NULL };
+static const char *volmutecmd[] = { "/home/ishaan/programs/scripts/dwm-ch-vol", "mute", NULL };
+static const char *volupcmd[] = { "/home/ishaan/programs/scripts/dwm-ch-vol", "+5%", NULL };
+static const char *voldowncmd[] = { "/home/ishaan/programs/scripts/dwm-ch-vol", "-5%", NULL };
+// static const char *volupcmd[] = { "pactl", "set-sink-volume", "0", "+5%", NULL };
+static const char *brightupcmd[] = { "/home/ishaan/programs/scripts/dwm-ch-bright", "+5", NULL };
+static const char *brightdowncmd[] = { "/home/ishaan/programs/scripts/dwm-ch-bright", "-5", NULL };
 
 
+#include <X11/XF86keysym.h>
 static Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
@@ -130,10 +135,15 @@ static Key keys[] = {
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
-        { MODKEY,                       XK_F1,     spawn,          {.v = volmute    } },
-        { MODKEY,                       XK_F2,     spawn,          {.v = voldown    } },
-        { MODKEY,                       XK_F3,     spawn,          {.v = volup      } },
         { MODKEY,                       XK_F5,     spawn,          {.v = statbarref } },
+	{ MODKEY|ShiftMask,          XK_space,     spawn,          {.v = browsercmd } },
+	{ 0,                 XF86XK_AudioMute,     spawn,          {.v = volmutecmd } },
+	{ 0,          XF86XK_AudioLowerVolume,     spawn,          {.v = voldowncmd } },
+	{ 0,          XF86XK_AudioRaiseVolume,     spawn,          {.v = volupcmd } },
+//	{ 0,           XF86XK_MonBrightnessUp,     spawn,          {.v = volupcmd } },
+//	{ 0,         XF86XK_MonBrightnessDown,     spawn,          {.v = voldowncmd } },
+	{ 0,           XF86XK_MonBrightnessUp,     spawn,          {.v = brightupcmd } },
+	{ 0,         XF86XK_MonBrightnessDown,     spawn,          {.v = brightdowncmd } },
         { MODKEY,                       XK_x,      movecenter,     {0} },
 	{ MODKEY,                       XK_g,      incrgaps,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_g,      incrgaps,       {.i = -1 } },
