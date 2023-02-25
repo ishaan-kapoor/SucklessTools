@@ -4,6 +4,7 @@ config.h
 *.rej
 README.*
 *.png
+*.diff
 
 dwm/drw.o
 dwm/dwm
