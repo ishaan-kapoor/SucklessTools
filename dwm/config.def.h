@@ -68,7 +68,7 @@ static const Layout layouts[] = {
         { "---",      horizgrid },
         { ":::",      gaplessgrid },
         { "[=]",      tile },
-	{ "[M]",      monocle },
+        { "[M]",      monocle },
         { "><>",      NULL },    /* no layout function means floating behavior */
         { NULL,       NULL },
 };
@@ -136,7 +136,8 @@ static Key keys[] = {
     TAGKEYS(                        XK_9,                      8)
     { MODKEY|ShiftMask,             XK_q,      quit,           {0} },
     { MODKEY,                      XK_F5,     spawn,          {.v = statbarref } },
-    { MODKEY|ShiftMask,         XK_space,     spawn,          {.v = browsercmd } },
+    { MODKEY|ShiftMask,             XK_b,     spawn,          {.v = browsercmd } },
+    { Mod1Mask,                   XK_Tab,     switchcol,      {0} },
     { 0,                XF86XK_AudioMute,     spawn,          {.v = volmutecmd } },
     { 0,         XF86XK_AudioLowerVolume,     spawn,          {.v = voldowncmd } },
     { 0,         XF86XK_AudioRaiseVolume,     spawn,          {.v = volupcmd } },
@@ -159,7 +160,7 @@ static Key keys[] = {
 //  { MODKEY|ControlMask|ShiftMask, XK_9,      incrovgaps,     {.i = -1 } },
     { MODKEY|ControlMask,           XK_0,      togglegaps,     {0} },
     { MODKEY|ControlMask|ShiftMask, XK_0,      defaultgaps,    {0} },
-    { MODKEY|ShiftMask,                XK_h,      cyclelayout,    {.i = -1 } },
+    { MODKEY|ShiftMask,             XK_h,      cyclelayout,    {.i = -1 } },
     { MODKEY|ShiftMask,             XK_l,      cyclelayout,    {.i = +1 } },
     { MODKEY|ShiftMask,             XK_j,      movestack,      {.i = +1 } },
     { MODKEY|ShiftMask,             XK_k,      movestack,      {.i = -1 } },
