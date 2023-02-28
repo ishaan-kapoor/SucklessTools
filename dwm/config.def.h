@@ -143,6 +143,7 @@ static Key keys[] = {
     { 0,         XF86XK_AudioRaiseVolume,     spawn,          {.v = volupcmd } },
     { 0,          XF86XK_MonBrightnessUp,     spawn,          {.v = brightupcmd } },
     { 0,        XF86XK_MonBrightnessDown,     spawn,          {.v = brightdowncmd } },
+    { MODKEY|ShiftMask,             XK_f,      togglefullscr,  {0} },
     { MODKEY,                       XK_x,      movecenter,     {0} },
     { MODKEY,                       XK_g,      incrgaps,       {.i = +1 } },
     { MODKEY|ShiftMask,             XK_g,      incrgaps,       {.i = -1 } },

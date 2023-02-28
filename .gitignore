@@ -5,6 +5,7 @@ config.h
 README.*
 *.png
 *.diff
+patches/*
 
 dwm/drw.o
 dwm/dwm
