@@ -42,6 +42,7 @@ static const Rule rules[] = {
 	{ "Gimp",     NULL,       NULL,       0,            1,           0,         0,        -1 },
 	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           0,         0,        -1 },
 	{ "st",       NULL,       NULL,       0,            0,           1,         1,        -1 },
+	{ "fSt",      NULL,       NULL,       0,            1,           1,         1,        -1 },
 	{ NULL,       NULL,  "Event Tester",  0,            0,           1,         1,        -1 }, // xev
 };
 
@@ -56,21 +57,21 @@ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen win
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "|M|",      centeredmaster },    /* first entry is default */
-        { ">M>",      centeredfloatingmaster },
-        { "[@]",      spiral },
-        { "H[]",      deck },
-        { "###",      nrowgrid },
-        { "[\\]",     dwindle },
-        { "TTT",      bstack },
-        { "===",      bstackhoriz },
-        { "HHH",      grid },
-        { "---",      horizgrid },
-        { ":::",      gaplessgrid },
-        { "[=]",      tile },
-        { "[M]",      monocle },
-        { "><>",      NULL },    /* no layout function means floating behavior */
-        { NULL,       NULL },
+    { "|M|",      centeredmaster },    /* first entry is default */
+    { ">M>",      centeredfloatingmaster },
+    { "[@]",      spiral },
+    { "H[]",      deck },
+    { "###",      nrowgrid },
+    { "[\\]",     dwindle },
+    { "TTT",      bstack },
+    { "===",      bstackhoriz },
+    { "HHH",      grid },
+    { "---",      horizgrid },
+    { ":::",      gaplessgrid },
+    { "[=]",      tile },
+    { "[M]",      monocle },
+    { "><>",      NULL },    /* no layout function means floating behavior */
+    { NULL,       NULL },
 };
 
 /* key definitions */
@@ -88,6 +89,7 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", NULL };
 static const char *termcmd[]  = { "st", NULL };
+static const char *floatingtermcmd[]  = { "st", "-c", "fSt", NULL };
 static const char *browsercmd[]  = { "chromium", NULL };
 static const char *statbarref[]    = { "/home/ishaan/programs/scripts/sb-refresh", NULL };
 static const char *volmutecmd[] = { "/home/ishaan/programs/scripts/dwm-ch-vol", "mute", NULL };
@@ -96,6 +98,11 @@ static const char *voldowncmd[] = { "/home/ishaan/programs/scripts/dwm-ch-vol", 
 // static const char *volupcmd[] = { "pactl", "set-sink-volume", "0", "+5%", NULL };
 static const char *brightupcmd[] = { "/home/ishaan/programs/scripts/dwm-ch-bright", "+5", NULL };
 static const char *brightdowncmd[] = { "/home/ishaan/programs/scripts/dwm-ch-bright", "-5", NULL };
+static const char *mediaprevcmd[] = { "playerctl", "previous", NULL };
+static const char *mediaplaycmd[] = { "playerctl", "play", NULL };
+static const char *mediaplaypausecmd[] = { "playerctl", "play-pause", NULL };
+static const char *mediapausecmd[] = { "playerctl", "pause", NULL };
+static const char *medianextcmd[] = { "playerctl", "next", NULL };
 
 
 #include <X11/XF86keysym.h>
@@ -103,6 +110,7 @@ static Key keys[] = {
 	/* modifier                     key        function        argument */
     { MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
     { MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
+    { Mod1Mask|ShiftMask,           XK_Return, spawn,          {.v = floatingtermcmd } },
     { MODKEY,                       XK_b,      togglebar,      {0} },
     { MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
     { MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
@@ -143,6 +151,10 @@ static Key keys[] = {
     { 0,         XF86XK_AudioRaiseVolume,     spawn,          {.v = volupcmd } },
     { 0,          XF86XK_MonBrightnessUp,     spawn,          {.v = brightupcmd } },
     { 0,        XF86XK_MonBrightnessDown,     spawn,          {.v = brightdowncmd } },
+    { 0,                XF86XK_AudioPrev,     spawn,          {.v = mediaprevcmd } },
+    { 0,                XF86XK_AudioPlay,     spawn,          {.v = mediaplaypausecmd } },
+    { 0,               XF86XK_AudioPause,     spawn,          {.v = mediaplaypausecmd } },
+    { 0,                XF86XK_AudioNext,     spawn,          {.v = medianextcmd } },
     { MODKEY|ShiftMask,             XK_f,      togglefullscr,  {0} },
     { MODKEY,                       XK_x,      movecenter,     {0} },
     { MODKEY,                       XK_g,      incrgaps,       {.i = +1 } },
