@@ -3,7 +3,6 @@ config.h
 *.orig
 *.rej
 README.*
-*.png
 *.diff
 
 dwm/drw.o
