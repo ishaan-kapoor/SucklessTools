@@ -30,11 +30,11 @@ static const struct secretpass scom[entrylen] = {
 /*Enable blur*/
 #define BLUR
 /*Set blur radius*/
-static const int blurRadius=10;
+static const int blurRadius=5;
 /*Enable Pixelation*/
 #define PIXELATION
 /*Set pixelation radius*/
-static const int pixelSize=10;
+static const int pixelSize=2;
 
 /* insert grid pattern with scale 1:1, the size can be changed with logosize */
 static const int logosize = 75;

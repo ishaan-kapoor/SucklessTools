@@ -103,6 +103,7 @@ static const char *mediaplaycmd[] = { "playerctl", "play", NULL };
 static const char *mediaplaypausecmd[] = { "playerctl", "play-pause", NULL };
 static const char *mediapausecmd[] = { "playerctl", "pause", NULL };
 static const char *medianextcmd[] = { "playerctl", "next", NULL };
+static const char *lockscreencmd[] = { "/home/ishaan/programs/scripts/lock-screen", NULL };
 
 
 #include <X11/XF86keysym.h>
@@ -145,6 +146,7 @@ static Key keys[] = {
     { MODKEY|ShiftMask,             XK_q,       quit,           {0} },
     { MODKEY,                      XK_F5,       spawn,          {.v = statbarref } },
     { MODKEY|ShiftMask,             XK_b,       spawn,          {.v = browsercmd } },
+    { MODKEY|Mod1Mask,              XK_l,       spawn,          {.v = lockscreencmd} },
     { Mod1Mask,                   XK_Tab,       switchcol,      {0} },
     { 0,                XF86XK_AudioMute,       spawn,          {.v = volmutecmd } },
     { 0,         XF86XK_AudioLowerVolume,       spawn,          {.v = voldowncmd } },
