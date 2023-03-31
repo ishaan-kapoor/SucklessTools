@@ -22,4 +22,8 @@ st/st.o
 st/x.o
 st/hb.o
 
+slock/config.h
+slock/explicit_bzero.o
+slock/slock
+slock/slock.o
 
