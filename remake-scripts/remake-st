@@ -1,0 +1,12 @@
+#!/bin/sh
+
+cwd=$(pwd)
+
+cd /home/ishaan/programs/SucklessTools/st
+sudo rm config.h st st.o x.o
+sudo make clean install
+sudo rm config.h st st.o x.o
+
+cd $cwd
+
+echo "DONE"

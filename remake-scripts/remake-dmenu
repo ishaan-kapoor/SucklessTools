@@ -1,0 +1,12 @@
+#!/bin/sh
+
+cwd=$(pwd)
+
+cd /home/ishaan/programs/SucklessTools/dmenu
+sudo rm config.h dmenu dmenu.o drw.o stest stest.o util.o
+sudo make clean install
+sudo rm config.h dmenu dmenu.o drw.o stest stest.o util.o
+
+cd $cwd
+
+echo "DONE"

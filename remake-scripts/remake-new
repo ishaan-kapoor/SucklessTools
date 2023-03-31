@@ -1,0 +1,5 @@
+#!/bin/sh
+
+/home/ishaan/programs/SucklessTools/remake-scripts/remake-*
+
+echo "DONE"

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+cwd=$(pwd)
+
+cd /home/ishaan/programs/SucklessTools/slock
+sudo rm config.h explicit_bzero.o slock slock.o
+sudo make clean install
+sudo rm config.h explicit_bzero.o slock slock.o
+
+cd $cwd
+
+echo "DONE"

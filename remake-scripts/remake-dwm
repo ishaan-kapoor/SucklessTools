@@ -1,0 +1,13 @@
+#!/bin/sh
+
+cwd=$(pwd)
+
+sed -i "/^[ ]*\[SchemeUrg\]/ d" ~/.cache/wal/colors-wal-dwm.h
+cd /home/ishaan/programs/SucklessTools/dwm
+sudo rm config.h drw.o dwm dwm.o util.o
+sudo make clean install
+sudo rm config.h drw.o dwm dwm.o util.o
+
+cd $cwd
+
+echo "DONE"
