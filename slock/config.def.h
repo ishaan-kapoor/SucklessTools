@@ -10,3 +10,12 @@ static const char *colorname[NUMCOLS] = {
 
 /* treat a cleared input like a wrong password (color) */
 static const int failonclear = 1;
+#define entrylen 0 /* Length of entries */
+static const struct secretpass {
+    const char *pass;
+    const char *command;
+};
+static const struct secretpass scom[entrylen] = {
+/*	 Password		    command */
+	// { "clean",   "/home/ishaan/programs/scripts/clean-screen" },
+};
