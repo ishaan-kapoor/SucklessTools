@@ -104,14 +104,23 @@ static const char *mediaplaypausecmd[] = { "playerctl", "play-pause", NULL };
 static const char *mediapausecmd[] = { "playerctl", "pause", NULL };
 static const char *medianextcmd[] = { "playerctl", "next", NULL };
 static const char *lockscreencmd[] = { "/home/ishaan/programs/scripts/lock-screen", NULL };
+static const char *screenshotcmd[] = { "/home/ishaan/programs/scripts/screenshot", "-f", NULL };
+static const char *ssselectivecmd[] = { "/home/ishaan/programs/scripts/screenshot", "-s", NULL };
+static const char *sswindowcmd[] = { "/home/ishaan/programs/scripts/screenshot", "-w", NULL };
+static const char *ssclipboardcmd[] = { "/home/ishaan/programs/scripts/screenshot", "-c", NULL };
 
 
 #include <X11/XF86keysym.h>
+#define XK_PrintScreen 0x0000ff61
 static Key keys[] = {
 	/* modifier                     key        function        argument */
     { MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
     { MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
     { Mod1Mask|ShiftMask,           XK_Return, spawn,          {.v = floatingtermcmd } },
+    { MODKEY|ShiftMask,             XK_s,      spawn,          {.v = ssclipboardcmd } },
+    { 0,                  XK_PrintScreen,      spawn,          {.v = screenshotcmd } },
+    { ShiftMask,          XK_PrintScreen,      spawn,          {.v = ssselectivecmd } },
+    { ControlMask,        XK_PrintScreen,      spawn,          {.v = sswindowcmd } },
     { MODKEY,                       XK_b,      togglebar,      {0} },
     { MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
     { MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
