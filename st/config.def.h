@@ -5,7 +5,7 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "CaskaydiaCove Nerd Font:style=Book:pixelsize=14:antialias=true:autohint=true";
+static char *font = "CaskaydiaCove Nerd Font:style=Book:pixelsize=18:antialias=true:autohint=true";
 static int borderpx = 2;
 
 /*
@@ -139,13 +139,15 @@ static uint forcemousemod = ShiftMask;
  */
 static MouseShortcut mshortcuts[] = {
 	/* mask                 button   function        argument       release */
-	{ XK_ANY_MOD,           Button4, kscrollup,      {.i = 1} },
-	{ XK_ANY_MOD,           Button5, kscrolldown,    {.i = 1} },
-	{ XK_ANY_MOD,           Button2, selpaste,       {.i = 0},      1 },
-	//{ ShiftMask,            Button4, ttysend,        {.s = "\033[5;2~"} },
-	//{ XK_ANY_MOD,           Button4, ttysend,        {.s = "\031"} },
-	//{ ShiftMask,            Button5, ttysend,        {.s = "\033[6;2~"} },
-	//{ XK_ANY_MOD,           Button5, ttysend,        {.s = "\005"} },
+    { ControlMask,          Button4, zoom,           {.f = +1} },
+    { ControlMask,          Button5, zoom,           {.f = -1} },
+    //{ ShiftMask,            Button4, ttysend,        {.s = "\033 M"} },
+    //{ XK_ANY_MOD,           Button4, ttysend,        {.s = "\031"} },
+    //{ ShiftMask,            Button5, ttysend,        {.s = "\033[6;2~"} },
+    //{ XK_ANY_MOD,           Button5, ttysend,        {.s = "\005"} },
+	{ XK_NO_MOD,           Button4, kscrollup,      {.i = 1}  },
+	{ XK_NO_MOD,           Button5, kscrolldown,    {.i = 1}  },
+	{ XK_NO_MOD,           Button2, selpaste,       {.i = 0},      1 },
 };
 
 /* Internal keyboard shortcuts. */
@@ -178,8 +180,11 @@ static Shortcut shortcuts[] = {
 	{ TERMMOD,              XK_K,           zoom,           {.f = +1} },
 	{ TERMMOD,              XK_J,           zoom,           {.f = -1} },
 	{ TERMMOD,              XK_Up,          zoom,           {.f = +1} },
-	{ TERMMOD,              XK_Down,        zoom,           {.f = -1} },
-	{ MODKEY,               XK_o,           externalpipe,   {.v = copyoutput } },
+    { TERMMOD,              XK_Down,        zoom,           {.f = -1} },
+    { ControlMask,          XK_KP_Add,      zoom,           {.f = +1} },
+    { ControlMask,          XK_KP_Subtract, zoom,           {.f = -1} },
+    { ControlMask,          XK_KP_0,        zoomreset,      {.i =  0} },
+    { MODKEY,               XK_o,           externalpipe,   {.v = copyoutput } },
 };
 
 /*
