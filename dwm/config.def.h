@@ -90,6 +90,7 @@ static const Layout layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", NULL };
+static const char *dmenuruncmd[] = { "run_dmenu", "centre", NULL };
 static const char *termcmd[]  = { "st", NULL };
 static const char *floatingtermcmd[]  = { "st", "-c", "fSt", NULL };
 static const char *browsercmd[]  = { "chromium", NULL };
@@ -117,6 +118,7 @@ static const char *ssclipboardcmd[] = { "/home/ishaan/programs/scripts/screensho
 static Key keys[] = {
 	/* modifier                     key        function        argument */
     { MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
+    { MODKEY,                       XK_r,      spawn,          {.v = dmenuruncmd } },
     { MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
     { Mod1Mask|ShiftMask,           XK_Return, spawn,          {.v = floatingtermcmd } },
     { MODKEY|ShiftMask,             XK_s,      spawn,          {.v = ssclipboardcmd } },

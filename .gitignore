@@ -4,6 +4,7 @@ config.h
 *.rej
 README.*
 *.diff
+*.patch
 
 dwm/drw.o
 dwm/dwm

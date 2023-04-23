@@ -1,0 +1,8 @@
+#!/bin/sh
+dmenu_cmd='dmenu'
+if [ "$1" = "centre" ]; then
+    dmenu_cmd='dmenu -c -l 20'
+fi
+dmenu_path | $dmenu_cmd | ${SHELL:-"/bin/sh"} &
+# echo "$dmenu_cmd"
+# echo "ishaan\nkapoor" | $dmenu_cmd
