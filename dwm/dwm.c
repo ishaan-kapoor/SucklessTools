@@ -18,7 +18,437 @@
  *
  * Keys and tagging rules are organized as arrays and defined in config.h.
  *
- * To understand everything else, start reading main().
+ * Some general concepts and terminology:
+ *
+ *    X
+ *       The X Window System (X11, or simply X) is a windowing system for bitmap displays and is
+ *       common on Unix-like operating systems. This provides the basic framework for a GUI
+ *       environment and it handles the drawing and moving of windows as well as the interaction
+ *       with a mouse and keyboard.
+ *
+ *    Xlib
+ *       An X Window System protocol client library written in C containing functions for
+ *       interacting with an X server.
+ *
+ *    Window
+ *       A window is the graphical representation of a program. This is what you see and interact
+ *       with when using your computer.
+ *
+ *    Window Manager
+ *       A window manager is a program that is responsible for controlling the placement and
+ *       appearance of windows within a windowing system. It can be part of a desktop environment
+ *       or be used on its own.
+ *
+ *    Desktop Environment
+ *       A desktop environment bundles together a variety of components to provide common graphical
+ *       user interface elements such as icons, toolbars, wallpapers, and desktop widgets.
+ *       Additionally, most desktop environments include a set of integrated applications and
+ *       utilities.
+ *
+ *       Typically desktop environments provide their own window manager and come with a built-in
+ *       compositor for handling transparency and special effects when moving or switching between
+ *       windows.
+ *
+ *    Screen
+ *       This can refer to a physical display, but in the context of dwm this can also refer to the
+ *       visible screen space that is covered by the root window. This spans all physical monitors.
+ *
+ *    Monitor
+ *       In the context of dwm the Monitor represents the drawable area of the screen and holds
+ *       properties such as the size and position of the screen as well as per-monitor settings
+ *       such as the selected layout, the position of the bar as well as a list of the clients
+ *       that are assigned to the given monitor.
+ *
+ *    Client
+ *       In the context of dwm the Client represents a window that is managed by the window
+ *       manager. The client holds a series of properties such as the size and position of the
+ *       window, various size restrictions, miscellaneous flags indicating state as well as
+ *       references to other clients within the same workspace.
+ *
+ *       A set of clients is represented in form of a linked list, which means that one client has
+ *       a reference to the next, and so on.
+ *
+ *    Layout
+ *       In the context of dwm a Layout controls how clients are arranged (tiled) respective to
+ *       other visible clients.
+ *
+ *       Most layouts have a larger "master" area where the main window(s) of interest reside and
+ *       one or more "stack" areas where the remaining windows are placed.
+ *
+ *       Floating clients stay on top of tiled clients and remain in their floating position
+ *       regardless of how other clients are tiled.
+ *
+ *    Workspace
+ *       In the context of window managers in general a workspace is what holds (or owns) a window
+ *       or a set of windows. Conceptually dwm has one workspace per monitor and controls what
+ *       clients are shown on that workspace through the use of tags. Each workspace can have a
+ *       different layout.
+ *
+ *       That dwm has workspaces generally goes unsaid due to the workspace being embedded into the
+ *       monitor making it transparent to the user. If in doubt then note how the Monitor struct
+ *       holds information that is unrelated to the screen space it occupies, as in it is used for
+ *       more than one thing.
+ *
+ *       For the sake of consistency we will be referring to the monitor rather than the workspace
+ *       for all upcoming text.
+ *
+ *    Tags
+ *       In the context of dwm the visibility of clients are handled through the use of tags. In
+ *       dwm the number of tags is user defined but limited to be between 1 and 32 tags. The number
+ *       of tags will be the same on all monitors, but are controlled separately from monitor to
+ *       monitor.
+ *
+ *       Multiple tags can can be viewed at the same time on a monitor, and a client can be shown
+ *       on multiple tags.
+ *
+ *       The famous pertag patch for dwm enables a separate layout (and other options) to be set on
+ *       a per tag basis. It works by keeping a record of what layout etc. is used on each
+ *       individual tag. When you switch to another tag the settings for that tag is copied across
+ *       to the Monitor. This creates a form of hybrid between workspaces and tags while taking
+ *       away from the purity and concept behind tags.
+ *
+ *    View
+ *       In the context of dwm a view is the presentation of clients on a per-monitor basis.
+ *
+ *    Bar
+ *       The bar in dwm shows what tags are being viewed, what layout is used, the name of the
+ *       selected client (if any) and a plain text status that will default to "dwm-<version>".
+ *
+ *    EWMH
+ *       The Extended Window Manager Hints is an X Window System standard for communication between
+ *       window managers and the windows they manage. These standards formulate protocols for the
+ *       mediation of access to shared X resources. Communication occurs via X properties and
+ *       client messages. The EWMH is a comprehensive set of protocols to implement a desktop
+ *       environment.
+ *
+ *       dwm only supports a handful of EWMH properties and client messages out of the box.
+ *
+ *    The event loop
+ *       In X everything is event driven. What this means is that when you click on a window then
+ *       that will generate an event that is propagated back to the window manager via the X server.
+ *
+ *       The window manager tells the X server what types of events it is interested in receiving
+ *       as well as what form of button or key presses the window manager is listening for.
+ *
+ *       When a window wants to go into fullscreen then it sends a client message event indicating
+ *       its desire to go into fullscreen. When you move a mouse cursor over a window then the
+ *       window manager will receive a notification that the mouse cursor crossed over from one
+ *       window to another. When a new window is created the window manager will receive an event
+ *       to that effect, the same goes when a window is closed.
+ *
+ *       When you hit the keybinding to focus on the next client then that will result in a key
+ *       press event because the window manager told the X server that it was interested in getting
+ *       such an event when the user hit MOD+k. When handling that event the window manager works
+ *       out that it is associated with the focusstack function and calls that accordingly. When
+ *       that action is complete it falls back to looking for new events to process.
+ *
+ *       Once dwm hits the run function every action or operation that the window manager does
+ *       after that is reacting to events received by the X server.
+ *
+ * To understand everything else, start reading main() as that is what sets everything up before
+ * entering the event loop.
+ *
+ * @see https://www.cl.cam.ac.uk/~mgk25/ucs/icccm.pdf
+ *
+ * Below is a high level call stack for dwm:
+ *
+ *    main
+ *    ├── checkotherwm
+ *    ├── die
+ *    ├── setup
+ *    │  ├── ecalloc
+ *    │  │  └── die
+ *    │  ├── updategeom
+ *    │  │  ├── ecalloc
+ *    │  │  │  └── die
+ *    │  │  ├── createmon
+ *    │  │  │  └── ecalloc
+ *    │  │  │     └── die
+ *    │  │  ├── wintomon
+ *    │  │  │  ├── wintoclient
+ *    │  │  │  ├── rectomon
+ *    │  │  │  └── getrootptr
+ *    │  │  ├── updatebarpos
+ *    │  │  └── isuniquegeom
+ *    │  ├── drw_create
+ *    │  │  └── ecalloc
+ *    │  ├── drw_scm_create
+ *    │  │  ├── drw_clr_create
+ *    │  │  │  └── die
+ *    │  │  └── ecalloc
+ *    │  ├── drw_cur_create
+ *    │  │  └── ecalloc
+ *    │  ├── grabkeys
+ *    │  │  └── updatenumlockmask
+ *    │  ├── updatebars
+ *    │  ├── focus
+ *    │  └── drw_fontset_create
+ *    │     └── xfont_create
+ *    │        └── ecalloc
+ *    ├── scan
+ *    │  └── getstate
+ *    ├── run
+ *    │  ├── propertynotify
+ *    │  │  ├── wintoclient
+ *    │  │  ├── updatewmhints
+ *    │  │  ├── updatetitle
+ *    │  │  │  └── gettextprop
+ *    │  │  ├── updatestatus
+ *    │  │  │  ├── gettextprop
+ *    │  │  │  └── drawbar
+ *    │  │  ├── updatewindowtype
+ *    │  │  │  └── getatomprop
+ *    │  │  ├── drawbar
+ *    │  │  ├── drawbars
+ *    │  │  │  └── drawbar
+ *    │  │  └── arrange
+ *    │  ├── unmapnotify
+ *    │  │  ├── wintoclient
+ *    │  │  ├── unmanage
+ *    │  │  │  ├── updateclientlist
+ *    │  │  │  ├── setclientstate
+ *    │  │  │  ├── focus
+ *    │  │  │  ├── detachstack
+ *    │  │  │  ├── detach
+ *    │  │  │  └── arrange
+ *    │  │  └── setclientstate
+ *    │  ├── enternotify
+ *    │  │  ├── wintoclient
+ *    │  │  ├── wintomon
+ *    │  │  │  ├── wintoclient
+ *    │  │  │  └── recttomon
+ *    │  │  ├── unfocus
+ *    │  │  └── focus
+ *    │  ├── destroynotify
+ *    │  │  ├── wintoclient
+ *    │  │  └── unmanage
+ *    │  │     ├── updateclientlist
+ *    │  │     ├── setclientstate
+ *    │  │     ├── focus
+ *    │  │     ├── detachstack
+ *    │  │     ├── detach
+ *    │  │     └── arrange
+ *    │  ├── maprequest
+ *    │  │  ├── manage
+ *    │  │  │  ├── ecalloc
+ *    │  │  │  │  └── die
+ *    │  │  │  ├── wintoclient
+ *    │  │  │  ├── updatewmhints
+ *    │  │  │  ├── updatesizehints
+ *    │  │  │  ├── grabbuttons
+ *    │  │  │  │  └── updatenumlockmask
+ *    │  │  │  ├── unfocus
+ *    │  │  │  ├── setclientstate
+ *    │  │  │  ├── updatetitle
+ *    │  │  │  │  └── gettextprop
+ *    │  │  │  ├── updatewindowtype
+ *    │  │  │  │  └── getatomprop
+ *    │  │  │  ├── focus
+ *    │  │  │  ├── configure
+ *    │  │  │  ├── attachstack
+ *    │  │  │  ├── attach
+ *    │  │  │  ├── arrange
+ *    │  │  │  └── applyrules
+ *    │  │  └── wintoclient
+ *    │  ├── clientmessage
+ *    │  │  ├── wintoclient
+ *    │  │  ├── seturgent
+ *    │  │  └── setfullscreen
+ *    │  │     ├── resizeclient
+ *    │  │     └── arrange
+ *    │  ├── configurerequest
+ *    │  │  ├── wintoclient
+ *    │  │  └── configure
+ *    │  ├── buttonpress
+ *    │  │  ├── wintoclient
+ *    │  │  ├── wintomon
+ *    │  │  │  ├── wintoclient
+ *    │  │  │  └── recttomon
+ *    │  │  ├── unfocus
+ *    │  │  ├── spawn
+ *    │  │  │  └── die
+ *    │  │  ├── togglefloating
+ *    │  │  │  ├── resize
+ *    │  │  │  └── arrange
+ *    │  │  ├── resizemouse
+ *    │  │  │  ├── sendmon
+ *    │  │  │  │  ├── unfocus
+ *    │  │  │  │  ├── focus
+ *    │  │  │  │  ├── detachstack
+ *    │  │  │  │  ├── detach
+ *    │  │  │  │  ├── attachstack
+ *    │  │  │  │  ├── attach
+ *    │  │  │  │  └── arrange
+ *    │  │  │  ├── resize
+ *    │  │  │  ├── recttomon
+ *    │  │  │  ├── maprequest
+ *    │  │  │  ├── focus
+ *    │  │  │  ├── expose
+ *    │  │  │  ├── restack
+ *    │  │  │  │  └── drawbar
+ *    │  │  │  ├── configurerequest
+ *    │  │  │  └── togglefloating
+ *    │  │  │     └── arrange
+ *    │  │  ├── movemouse
+ *    │  │  │  ├── sendmon
+ *    │  │  │  │  ├── unfocus
+ *    │  │  │  │  ├── focus
+ *    │  │  │  │  ├── detachstack
+ *    │  │  │  │  ├── detach
+ *    │  │  │  │  ├── attachstack
+ *    │  │  │  │  ├── attach
+ *    │  │  │  │  └── arrange
+ *    │  │  │  ├── resize
+ *    │  │  │  ├── recttomon
+ *    │  │  │  ├── maprequest
+ *    │  │  │  ├── getrootptr
+ *    │  │  │  ├── focus
+ *    │  │  │  ├── expose
+ *    │  │  │  ├── restack
+ *    │  │  │  │  └── drawbar
+ *    │  │  │  ├── configurerequest
+ *    │  │  │  └── togglefloating
+ *    │  │  │     └── arrange
+ *    │  │  ├── view
+ *    │  │  │  ├── focus
+ *    │  │  │  └── arrange
+ *    │  │  ├── toggleview
+ *    │  │  │  ├── focus
+ *    │  │  │  └── arrange
+ *    │  │  ├── toggletag
+ *    │  │  │  ├── focus
+ *    │  │  │  └── arrange
+ *    │  │  ├── tag
+ *    │  │  │  ├── focus
+ *    │  │  │  └── arrange
+ *    │  │  ├── focus
+ *    │  │  ├── setlayout
+ *    │  │  │  └── drawbar
+ *    │  │  ├── restack
+ *    │  │  │  └── drawbar
+ *    │  │  └── drw_fontset_getwidth
+ *    │  │     └── drw_text
+ *    │  │        ├── die
+ *    │  │        ├── drw_font_getexts
+ *    │  │        └── xfont_free
+ *    │  ├── configurenotify
+ *    │  │  ├── updategeom
+ *    │  │  │  ├── ecalloc
+ *    │  │  │  │  └── die
+ *    │  │  │  ├── createmon
+ *    │  │  │  │  └── ecalloc
+ *    │  │  │  │     └── die
+ *    │  │  │  ├── wintomon
+ *    │  │  │  │  ├── wintoclient
+ *    │  │  │  │  ├── rectomon
+ *    │  │  │  │  └── getrootptr
+ *    │  │  │  ├── updatebarpos
+ *    │  │  │  ├── isuniquegeom
+ *    │  │  │  ├── detachstack
+ *    │  │  │  ├── cleanupmon
+ *    │  │  │  ├── attachstack
+ *    │  │  │  └── attach
+ *    │  │  ├── drw_resize
+ *    │  │  ├── updatebars
+ *    │  │  ├── resizeclient
+ *    │  │  ├── focus
+ *    │  │  └── arrange
+ *    │  ├── keypress
+ *    │  │  ├── focusmon
+ *    │  │  │  ├── unfocus
+ *    │  │  │  ├── focus
+ *    │  │  │  └── dirtomon
+ *    │  │  ├── spawn
+ *    │  │  │  └── die
+ *    │  │  ├── togglefloating
+ *    │  │  │  ├── resize
+ *    │  │  │  └── arrange
+ *    │  │  ├── quit
+ *    │  │  ├── zoom
+ *    │  │  │  ├── nexttiled
+ *    │  │  │  └── pop
+ *    │  │  │     ├── focus
+ *    │  │  │     ├── detach
+ *    │  │  │     ├── attach
+ *    │  │  │     └── arrange
+ *    │  │  ├── killclient
+ *    │  │  │  └── sendevent
+ *    │  │  ├── view
+ *    │  │  │  ├── focus
+ *    │  │  │  └── arrange
+ *    │  │  ├── toggleview
+ *    │  │  │  ├── focus
+ *    │  │  │  └── arrange
+ *    │  │  ├── toggletag
+ *    │  │  │  ├── focus
+ *    │  │  │  └── arrange
+ *    │  │  ├── tag
+ *    │  │  │  ├── focus
+ *    │  │  │  └── arrange
+ *    │  │  ├── focusstack
+ *    │  │  │  ├── focus
+ *    │  │  │  └── restack
+ *    │  │  │     └── drawbar
+ *    │  │  ├── setlayout
+ *    │  │  │  ├── drawbar
+ *    │  │  │  └── arrange
+ *    │  │  ├── tagmon
+ *    │  │  │  ├── sendmon
+ *    │  │  │  │  ├── unfocus
+ *    │  │  │  │  ├── focus
+ *    │  │  │  │  ├── detachstack
+ *    │  │  │  │  ├── detach
+ *    │  │  │  │  ├── attachstack
+ *    │  │  │  │  ├── attach
+ *    │  │  │  │  └── arrange
+ *    │  │  │  └── dirtomon
+ *    │  │  ├── togglebar
+ *    │  │  │  └── arrange
+ *    │  │  ├── setmfact
+ *    │  │  │  └── arrange
+ *    │  │  └── incnmaster
+ *    │  │     └── arrange
+ *    │  ├── focusin
+ *    │  │  └── setfocus
+ *    │  │     └── sendevent
+ *    │  ├── expose
+ *    │  │  ├── wintomon
+ *    │  │  │  ├── wintoclient
+ *    │  │  │  └── recttomon
+ *    │  │  └── drawbar
+ *    │  ├── motionnotify
+ *    │  │  ├── recttomon
+ *    │  │  └── focus
+ *    │  ├── scan
+ *    │  │  └── manage
+ *    │  │     └── ecalloc
+ *    │  │        └── die
+ *    │  ├── mappingnotify
+ *    │  │  └── grabkeys
+ *    │  │     └── updatenumlockmask
+ *    │  ├── setup
+ *    │  │  └── updatestatus
+ *    │  │     ├── gettextprop
+ *    │  │     └── drawbar
+ *    │  └── updatewindowtype
+ *    │     └── setfullscreen
+ *    │        ├── resizeclient
+ *    │        └── arrange
+ *    └── cleanup
+ *       ├── unmanage
+ *       │  └── updateclientlist
+ *       ├── view
+ *       │  ├── focus
+ *       │  └── arrange
+ *       ├── cleanupmon
+ *       ├── drw_cur_free
+ *       └── drw_free
+ *          └── drw_fontset_free
+ *             ├── drw_fontset_free
+ *             └── xfont_free
+ *
+ * The above skips details for commonly called functions like drawbar, resize, arrange, focus and
+ * unfocus.
  */
 #include <errno.h>
 #include <locale.h>
@@ -47,30 +477,96 @@
 #include "util.h"
 
 /* macros */
+
+/* The BUTTONMASK macro is used as part of the MOUSEMASK macro and is directly used in the
+ * grabbuttons function. It indicates that we are interested in receiving events when a mouse
+ * button is pressed and when it is released when we click on a window. */
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
+/* The CLEANMASK macro removes Num Lock mask and Lock mask from a given bit mask.
+ * Refer to the numlockmask variable comment for more details on the Num Lock mask.
+ * The CLEANMASK macro is used in the keypress and buttonpress functions. */
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
+/* Calculates how much a monitor's window area intersects with a given size and position.
+ * See the writeup in the recttomon function for more information on this. */
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
+/* This macro returns true if any of the given client's tags is on any of the tags currently being
+ * viewed on the monitor. */
 #define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags]))
+/* This calculates the number of items of an array. */
 #define LENGTH(X)               (sizeof X / sizeof X[0])
+/* The MOUSEMASK macro is used in the movemouse and resizemouse user functions and it indicates
+ * that we are interested in receiving events when the mouse cursor moves in addition to when the
+ * mouse button is pressed and released. */
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
+/* The actual width of a client window includes the border and this macro helps calculate that. */
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
+/* The actual height of a client window includes the border and this macro helps calculate that. */
 #define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
+/* The TAGMASK macro gives a binary value that represents a valid bitmask according to how many
+ * tags are defined.
+ *
+ * As an example dwm by default comes with nine tags and the bitmask is a 32 bit integer. In this
+ * case the TAGMASK macro would return a binary value like this:
+ *
+ *    00000000000000000000000111111111
+ *
+ * but if the configuration was changed so that there are icons defined for four tags then the
+ * TAGMASK macro would return a binary value like this:
+ *
+ *    00000000000000000000000000001111
+ *
+ * The TAGMASK is used in various places to restrict and to validate bitmask values used in the
+ * context of what tags are viewed by the monitor and what tags are assigned to a client.
+ */
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
+/* The TEXTW macro returns the width of a given text string plus the left and right padding.
+ *
+ * Due to that not all fonts have every glyph and we have a primary font and fallback fonts this
+ * macro calls drw_fontset_getwidth which does the exact same thing as when text is drawn, just
+ * that it returns how far the cursor has moved rather than actually drawing the text. */
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
 
 #define OPAQUE                  0xffU
 
 /* enums */
+ 
+/* Enumerators (enums) are user defined data types in C. They are mainly used to assign names to
+ * integral constants to make a program easier to read and maintain.
+ *
+ * As an example the below cursor enum would result in CurNormal having a value of 0, CurResize
+ * having a value of 1 and CurMove having a value of 2. Often an additional constant is added to
+ * an enum representing the last of the given type, e.g. CurLast having a value of 3.
+ *
+ * The last value is commonly used when needing to looping through the various options / constants.
+ * It is possible to specify the value of each constant, but this is not used here.
+ */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
+/* If you need to add your own colour schemes then this is where you would add them. */
 enum { SchemeNorm, SchemeSel }; /* color schemes */
+/* This represents the various extended window manager hint atoms that dwm supports. */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
+/* This represents various window manager hint atoms that dwm supports. */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
+/* This represents the various click options that can be used when defining mouse button press
+ * bindings in the buttons array in the configuration file. */
 enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
        ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
 
+/* In C a struct(ure) can be thought of as a user defined data type. They define how much space is
+ * needed to allocate memory to hold values for each of the variables inside the structure.
+ *
+ * While arrays allow for variables that can hold several data types of the same kind to be
+ * defined, a structure allows for data items of different kinds to be defined.
+ *
+ * A union is conceptually similar to structures, with the difference being that of memory
+ * allocation. In a structure each variable (also referred to as a member) has allocated space
+ * whereas in a union all the variables share the same memory. The Arg type that are passed to
+ * user functions is a union which means that the argument can be an integer, an unsigned integer,
+ * a float value or a pointer, but the argument can only hold a single value.
+ */
 typedef union {
 	int i;
 	unsigned int ui;
@@ -78,6 +574,16 @@ typedef union {
 	const void *v;
 } Arg;
 
+/* The definition of a button, used in the configuration file when setting up mouse button
+ * bindings.
+ *
+ * static Button buttons[] = {
+ *    // click                event mask      button          function        argument
+ *    { ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
+ *    { ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
+ *    ...
+ * };
+ */
 typedef struct {
 	unsigned int click;
 	unsigned int mask;
@@ -86,26 +592,94 @@ typedef struct {
 	const Arg arg;
 } Button;
 
+/* Here we are declaring that we are going to have a struct called Monitor without going into
+ * details of what exactly this struct looks like. This is because the Client struct refers to
+ * the current monitor, while the monitor is going to have a list of clients. We define these
+ * structs alphabetically thus the Client is defined before the Monitor. */
 typedef struct Monitor Monitor;
 typedef struct Client Client;
+
+/* The Client struct represents a window that is managed by the window manager. */
 struct Client {
+	/* The name holds the window title. */
 	char name[256];
+	/* The mina and maxa represents the minimum and maximum aspect ratios as per size hints. */
 	float mina, maxa;
+	/* The client x, y coordinates and size (width, height). */
 	int x, y, w, h;
 	int sfx, sfy, sfw, sfh; /* stored float geometry, used on mode revert */
+	/* These variables represent the client's previous size and position and they are maintained
+	 * in the resizeclient function. In practice in a stock dwm they are only used when a
+	 * fullscreen window exits fullscreen. */
 	int oldx, oldy, oldw, oldh;
+	/* These variables are all in relation to size hints.
+	 *    basew - base width
+	 *    baseh - base height
+	 *    incw - width increment
+	 *    inch - height increment
+	 *    minw - minimum width
+	 *    minh - minimum height
+	 *    maxw - maximum width
+	 *    maxh - maximum height
+	 *    hintsvalid - flag indicating whether size hints need to be refreshed
+	 */
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
+	/* Border width (bw) and old border width. The old border width is set in the manage
+	 * function and is used in the unmanage function in the event that the window was not
+	 * destroyed. The setfullscreen function also relies on this variable. See comment in the
+	 * unmanage function. */
 	int bw, oldbw;
+	/* This represents the tags the client is shown on. This is a bitmask where each bit
+	 * represents whether the client is shown on that tag.
+	 *
+	 * As an example consider the hexadecimal value of 0x51 (decimal 81) which has a binary
+	 * value of:
+	 *    001010001  - bitmask
+	 *    987654321  - tags
+	 *
+	 * This would mean that the client is shown on tags 1, 5 and 7.
+	 */
 	unsigned int tags;
+	/* Various status flags.
+	 *    isfixed      - means that the client is fixed in size due to minimum and maximum size
+	 *                   hints being the same value
+	 *    isfloating   - indicates whether the client is floating or not
+	 *    isurgent     - indicates whether the client is urgent or not
+	 *    neverfocus   - some windows do not want the window manager to give them input focus as
+	 *                   they are mere passive windows that do not handle any input, the
+	 *                   neverfocus indicates that the client should never receive input focus
+	 *                   as indicated by the window manager hints for the window
+	 *                   (see updatewmhints and setfocus functions)
+	 *    oldstate     - represents the previous state in the event that the client goes into
+	 *                   fullscreen, the variable is only used to indicate whether the client
+	 *                   was floating or not
+	 *    isfullscreen - indicates whether the window is in fullscreen
+	 */
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isterminal, noswallow;
-	pid_t pid;
+    pid_t pid;
+	/* The next client in the client list, which is a linked list. The client list controls the
+	 * order in which clients are tiled. */
 	Client *next;
+	/* The next client in the stacking order list, which is also a linked list. The stacking
+	 * order indicates which window is on top of others as well as the order in which clients
+	 * had focus. */
 	Client *snext;
 	Client *swallowing;
+	/* The monitor this client belongs to. */
 	Monitor *mon;
+	/* The managed window that this client represents. */
 	Window win;
 };
 
+/* The definition of a key, used in the configuration file when setting up key bindings.
+ *
+ * static Key keys[] = {
+ *    // modifier                     key        function        argument
+ *    { MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
+ *    { MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
+ *    ...
+ * };
+ */
 typedef struct {
 	unsigned int mod;
 	KeySym keysym;
@@ -113,39 +687,142 @@ typedef struct {
 	const Arg arg;
 } Key;
 
+/* The definition of a layout, used in the configuration file when setting up layouts.
+ *
+ * static const Layout layouts[] = {
+ * 	// symbol     arrange function
+ * 	{ "[]=",      tile },    // first entry is default
+ * 	{ "><>",      NULL },    // no layout function means floating behavior
+ * 	{ "[M]",      monocle },
+ * };
+ */
 typedef struct {
 	const char *symbol;
 	void (*arrange)(Monitor *);
 } Layout;
 
+/* This represents individual monitors (screens) if Xinerama is used, or a single monitor
+ * representing the entire screen space if Xinerama is not enabled. */
 typedef struct Pertag Pertag;
 struct Monitor {
+	/* This holds the layout symbol text, typically as defined in the layouts array. This is
+	 * used when drawing the layout symbol on the bar. The reason why this is defined for the
+	 * monitor rather than simply using the layout symbol as defined in the layouts array is
+	 * that some layouts, like the monocle layout for example, may alter the layout symbol
+	 * depending on how many clients are present. */
 	char ltsymbol[16];
+	/* The master / stack factor which controls how big a proportion of the window tiling area
+	 * is reserved for the master area compared to the stack area. The default value is
+	 * configured in the configuration file and the value is adjusted via the setmfact function.
+	 * The value has a range from 0.05 to 0.95. */
 	float mfact;
+	/* This represents the number of clients that are to be tiled in the master area. This has
+	 * no upper limit but cannot be less than 0. The default value is configured in the
+	 * configuration file and the value is adjusted via the incnmaster function. */
 	int nmaster;
+	/* This represents the monitor number, or the monitor index if you wish. */
 	int num;
+	/* The by variable defines the bar windows position on the y axis and this is set in the
+	 * updatebarpos function. */
 	int by;               /* bar geometry */
+	/* These variables represents the position and dimensions of the monitor.
+	 *    mx - monitor position on the x-axis
+	 *    my - monitor position on the y-axis
+	 *    mw - the monitor's width
+	 *    mh - the monitor's height
+	 */
 	int mx, my, mw, mh;   /* screen size */
+	/* These variables represents the position and dimensions of the window area, as in the part
+	 * of the monitor where windows are tiled. This is the the space of the monitor less the
+	 * bar window and these are set in the updatebarpos function.
+	 *    wx - window area position on the x-axis
+	 *    wy - window area position on the y-axis
+	 *    ww - the window area's width
+	 *    wh - the window area's height
+	 */
 	int wx, wy, ww, wh;   /* window area  */
 	int gappih;           /* horizontal gap between windows */
 	int gappiv;           /* vertical gap between windows */
 	int gappoh;           /* horizontal outer gaps */
 	int gappov;           /* vertical outer gaps */
+	/* The seltags variable is either 0 or 1 and represents the currently selected tagset.
+	 *
+	 * This allows for a clever mechanism where one can easily flip between the current and
+	 * previous tagset by simply flipping the value of seltags:
+	 *
+	 *    selmon->seltags ^= 1;
+	 *
+	 * For this reason when referring to the selected tags for a monitor you will often find
+	 * these kind of patterns:
+	 *
+	 *    m->tagset[m->seltags]
+	 *    selmon->tagset[selmon->seltags]
+	 *    c->mon->tagset[c->mon->seltags]
+	 *
+	 * In principle this could just have been defined as two variables for the monitor.
+	 *
+	 *    m->tags
+	 *    m->prevtags
+	 *
+	 * which would make the above patterns slightly easier to read, i.e.
+	 *
+	 *    m->tags
+	 *    selmon->tags
+	 *    c->mon->tags
+	 *
+	 * The benefit of using this mechanism, however, is that we save on a single line of code
+	 * in the view function when the argument is 0 and we toggle back to the previous view.
+	 */
 	unsigned int seltags;
+	/* The sellt variable is either 0 or 1 and represents the currently selected layout. This
+	 * follows the same mechanism as seltags above giving patterns such a:
+	 *
+	 *    m->lt[m->sellt]
+	 *    selmon->lt[selmon->sellt]
+	 *    c->mon->lt[c->mon->sellt]
+	 */
 	unsigned int sellt;
+	/* This array holds the previously and currently viewed tags for the monitor, the index of
+	 * which is indicated by the seltags variable. */
 	unsigned int tagset[2];
+	/* Internal flag indicating whether the bar is shown or not. */
 	int showbar;
+	/* Internal flag indicating whether the bar is shown at the top or at the bottom. */
 	int topbar;
+	/* The client list. This represents the start of a linked list of clients which determines
+	 * the order in which clients are tiled. */
 	Client *clients;
+	/* This represents the monitor's selected client. */
 	Client *sel;
+	/* The stacking order list. This represents the order in which client windows are stacked on
+	 * top of each other, as well as the order in which clients had last focus. */
 	Client *stack;
+	/* Monitors are also managed as a linked list with the mons variable referring to the first
+	 * monitor. The next variable on the monitor refers to the next monitor in the list. */
 	Monitor *next;
+	/* This is the bar window which is used to draw the bar. Each monitor has their own bar. */
 	Window barwin;
+	/* This array holds the previous and current layout for the monitor, the index of which is
+	 * indicated by the sellt variable. */
 	const Layout *lt[2];
 	unsigned int alttag;
 	Pertag *pertag;
 };
 
+/* The definition of a rule, used in the configuration file when setting up client rules.
+ *
+ * static const Rule rules[] = {
+ *    // xprop(1):
+ *    //    WM_CLASS(STRING) = instance, class
+ *    //    WM_NAME(STRING) = title
+ *    //
+ *    // class      instance    title       tags mask     isfloating   monitor
+ *    { "Gimp",     NULL,       NULL,       0,            1,           -1 },
+ *    { "Firefox",  NULL,       NULL,       1 << 8,       0,           -1 },
+ * };
+ *
+ * See the applyrules function for how the rules are applied.
+ */
 typedef struct {
 	const char *class;
 	const char *instance;
@@ -157,6 +834,10 @@ typedef struct {
 	int monitor;
 } Rule;
 
+
+/* Function declarations. All functions are declared for visibility and overview reasons. The
+ * declarations as well as the functions themselves are sorted alphabetically so that they should
+ * be easier to find and maintain. */
 /* function declarations */
 static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
